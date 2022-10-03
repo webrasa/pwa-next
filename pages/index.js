@@ -1,11 +1,41 @@
+import QRCode from 'qrcode'
+
+import { useState } from 'react'
+
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 
 export default function Home() {
 
-  const handleSubmit = () => {
-    alert('Submited!');
+  const [data, setData] = useState({
+    payer: 'Marko Petrovic',
+    purpose: 'Po racunu',
+    acceptant: 'Petar Markovic',
+    amount: '1000',
+    paymentCode: '221',
+    currency: 'RSD',
+    account: '100000000002345678',
+    approvalNumber: '8080',
+    model: '00'
+  });
+
+  const [qr, setQr] = useState(null);
+
+  const parser = (json)=>{
+    return `K:PR|V:01|C:1|R:${json.account}|N:${json.acceptant}|I:${json.currency}${json.amount}|P:${json.payer}|SF:${json.paymentCode}|S:${json.purpose}|RO:${json.model}${json.approvalNumber}`
+}
+
+  const handleChange = (e) => {
+    const name = e.currentTarget.name;
+    setData({...data, [e.currentTarget.name]: e.currentTarget.value});
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const base64 = await QRCode.toDataURL(parser(data));
+    setQr(base64);
+    // console.log('Generated! ', base64Data);
   }
 
   return (
@@ -17,49 +47,56 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <h3 className={styles.description}>
-          Welcome to PWA QR-Generator!
+        <h3>
+          PWA QR-Generator!
         </h3>
+        {
+          qr && 
+          <div className={styles.container}>
+            <Image src={qr} alt="Card image cap" width={150} height={150} />
+            <br/>
+            <button name='erase' onClick={()=>setQr(null)} className={styles.button_sm}>Obrisi</button>
+          </div>
+        }
 
         <form onSubmit={handleSubmit}>
-        <label>
-            Uplatilac:
-            <input type='text' name='payer'></input>
-          </label>
+          <div className={styles.container}>
           <label>
-            Svrha uplate:
-            <input type='text' name='purpose'></input>
-          </label>
-          <label>
-            Primalac:
-            <input type='text' name='acceptant'></input>
-          </label>
-          <label>
-            Iznos:
-            <input type='text' name='amount'></input>
-          </label>
-          <label>
-            Sifra placanja:
-            <input type='text' name='payment-code'></input>
-          </label>
-          <label>
-            Valuta:
-            <input type='text' name='currency'></input>
-          </label>
-          <label>
-            Racun primaoca:
-            <input type='text' name='account'></input>
-          </label>
-          <label>
-            Poziv na broj:
-            <input type='text' name='approval-number'></input>
-          </label>
-          <input type="submit" value='Generisi QR'/>
+              Uplatilac:
+              <input type='text' name='payer' value={data.payer} onChange={(str)=>handleChange(str)}></input>
+            </label>
+            <label>
+              Svrha uplate:
+              <input type='text' name='purpose' value={data.purpose} onChange={(str)=>handleChange(str)}></input>
+            </label>
+            <label>
+              Primalac:
+              <input type='text' name='acceptant' value={data.acceptant}></input>
+            </label>
+            <label>
+              Iznos: <br/>   
+              <input type='text' name='amount' value={data.amount}></input>
+            </label>
+            <label>
+              Sifra placanja:
+              <input type='text' name='payment-code' value={data.paymentCode}></input>
+            </label>
+            <label>
+              Valuta:  <br/>  
+              <input type='text' name='currency' value={data.currency}></input>
+            </label>
+            <label>
+              Racun primaoca:
+              <input type='text' name='account' value={data.account}></input>
+            </label>
+            <label>
+              Poziv na broj:
+              <input type='text' name='approval-number' value={data.approvalNumber}></input>
+            </label>
+            <br/>
+            <input className={styles.button} type="submit" value='Generisi QR'/>
+          </div>
         </form>
-
-        <div className={styles.grid}>
-          
-        </div>
       </main>
 
       <footer className={styles.footer}>
